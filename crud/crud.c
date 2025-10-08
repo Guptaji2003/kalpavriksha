@@ -5,9 +5,9 @@
 const char *DATA_FILE = "userdata.txt";
 
 typedef struct {
-    int id;
-    char name[30];
-    int age;
+    int user_id;
+    char user_name[30];
+    int user_age;
 } User;
 
 void addUser() {
@@ -19,23 +19,23 @@ void addUser() {
 
     User user;
     printf("enter user id: ");
-    if (scanf("%d", &user.id) != 1) {
-        printf("invalid input for id.\n");
+    if (scanf("%d", &user.user_id) != 1) {
+        printf("invalid input for user id.\n");
         fclose(file);
         return;
     }
 
     printf("enter user name: ");
-    scanf("%s", user.name);
+    scanf("%s", user.user_name);
 
     printf("enter user age: ");
-    if (scanf("%d", &user.age) != 1) {
-        printf("invalid input for age.\n");
+    if (scanf("%d", &user.user_age) != 1) {
+        printf("invalid input for user age.\n");
         fclose(file);
         return;
     }
 
-    fprintf(file, "%d %s %d\n", user.id, user.name, user.age);
+    fprintf(file, "%d %s %d\n", user.user_id, user.user_name, user.user_age);
     fclose(file);
     printf("user added successfully.\n");
 }
@@ -49,8 +49,8 @@ void showUsers() {
 
     User user;
     printf("\nuser records-\n");
-    while (fscanf(file, "%d %s %d", &user.id, user.name, &user.age) == 3) {
-        printf("ID: %d | Name: %s | Age: %d\n", user.id, user.name, user.age);
+    while (fscanf(file, "%d %s %d", &user.user_id, user.user_name, &user.user_age) == 3) {
+        printf("ID: %d | Name: %s | Age: %d\n", user.user_id, user.user_name, user.user_age);
     }
 
     fclose(file);
@@ -70,9 +70,9 @@ void updateUser() {
         return;
     }
 
-    int id, found = 0;
+    int userId, found = 0;
     printf("enter user id for update: ");
-    if (scanf("%d", &id) != 1) {
+    if (scanf("%d", &userId) != 1) {
         printf("invalid input for id.\n");
         fclose(file);
         fclose(temp);
@@ -80,15 +80,15 @@ void updateUser() {
     }
 
     User user;
-    while (fscanf(file, "%d %s %d", &user.id, user.name, &user.age) == 3) {
-        if (user.id == id) {
+    while (fscanf(file, "%d %s %d", &user.user_id, user.user_name, &user.user_age) == 3) {
+        if (user.user_id == userId) {
             printf("enter new name: ");
-            scanf("%s", user.name);
+            scanf("%s", user.user_name);
             printf("enter new age: ");
-            scanf("%d", &user.age);
+            scanf("%d", &user.user_age);
             found = 1;
         }
-        fprintf(temp, "%d %s %d\n", user.id, user.name, user.age);
+        fprintf(temp, "%d %s %d\n", user.user_id, user.user_name, user.user_age);
     }
 
     fclose(file);
@@ -116,9 +116,9 @@ void deleteUser() {
         return;
     }
 
-    int id, found = 0;
+    int userId, found = 0;
     printf("enter user id to delete the user: ");
-    if (scanf("%d", &id) != 1) {
+    if (scanf("%d", &userId) != 1) {
         printf("invalid input for id.\n");
         fclose(file);
         fclose(temp);
@@ -126,12 +126,12 @@ void deleteUser() {
     }
 
     User user;
-    while (fscanf(file, "%d %s %d", &user.id, user.name, &user.age) == 3) {
-        if (user.id == id) {
+    while (fscanf(file, "%d %s %d", &user.user_id, user.user_name, &user.user_age) == 3) {
+        if (user.user_id == userId) {
             found = 1;
             continue;
         }
-        fprintf(temp, "%d %s %d\n", user.id, user.name, user.age);
+        fprintf(temp, "%d %s %d\n", user.user_id, user.user_name, user.user_age);
     }
 
     fclose(file);

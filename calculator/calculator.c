@@ -5,89 +5,89 @@
 
 #define MAX 100
 
-int findprecedence(char op)
+int findprecedence(char operator)
 {
-    if (op == '+' || op == '-')
+    if (operator == '+' || operator == '-')
         return 1;
-    if (op == '*' || op == '/')
+    if (operator == '*' || operator == '/')
         return 2;
     return 0;
 }
 
-int performOperation(int a, int b, char op)
+int performOperation(int val1, int val2, char operator)
 {
-    if (op == '+')
-        return a + b;
-    if (op == '-')
-        return a - b;
-    if (op == '*')
-        return a * b;
-    if (op == '/')
+    if (operator == '+')
+        return val1 + val2;
+    if (operator == '-')
+        return val1 - val2;
+    if (operator == '*')
+        return val1 * val2;
+    if (operator == '/')
     {
-        if (b == 0)
+        if (val2 == 0)
         {
             printf("error: division by 0\n");
             return 0;
         }
-        return a / b;
+        return val1 / val2;
     }
     else
     {
-        printf("error: invalid operator '%c'\n", op);
+        printf("error: invalid operator '%c'\n", operator);
         return 0;
     }
 }
 
-int evaluate(char s[])
+int evaluate(char expression[])
 {
     int valuestack[MAX];
     int valuetop = -1;
     char operatorstack[MAX];
     int operatortop = -1;
 
-    int len = strlen(s);
-    for (int i = 0; i < len; i++)
+    int expressionlength = strlen(expression);
+    for (int i = 0; i < expressionlength; i++)
     {
-        if (s[i] == ' ')
+        if (expression[i] == ' ')
             continue;
 
-        if (isdigit(s[i]))
+        if (isdigit(expression[i]))
         {
             int n = 0;
-            while (i < len && isdigit(s[i]))
+            while (i < expressionlength && isdigit(expression[i]))
             {
-                n = n * 10 + (s[i] - '0');
+                n = n * 10 + (expression[i] - '0');
                 i++;
             }
             valuestack[++valuetop] = n;
             i--;
         }
-        else if (s[i] == '+' || s[i] == '-' || s[i] == '*' || s[i] == '/')
+        else if (expression[i] == '+' || expression[i] == '-' || expression[i] == '*' || expression[i] == '/')
         {
-            while (operatortop >= 0 && findprecedence(operatorstack[operatortop]) >= findprecedence(s[i]))
+            while (operatortop >= 0 && findprecedence(operatorstack[operatortop]) >= findprecedence(expression[i]))
             {
-                int b = valuestack[valuetop--];
-                int a = valuestack[valuetop--];
-                char c = operatorstack[operatortop--];
+                int val2 = valuestack[valuetop--];
+                int val1 = valuestack[valuetop--];
+                char operator = operatorstack[operatortop--];
 
-                int ans = performOperation(a, b, c);
+                int ans = performOperation(val1, val2, operator);
                 valuestack[++valuetop] = ans;
             }
-            operatorstack[++operatortop] = s[i];
+            operatorstack[++operatortop] = expression[i];
         }
         else
         {
-            printf("error: invalid character '%c'\n", s[i]);
+            printf("error: invalid character '%c'\n", expression[i]);
             return 0;
         }
     }
 
     while (operatortop >= 0)
     {
-        int b = valuestack[valuetop--];
-        int a = valuestack[valuetop--];
-        char c = operatorstack[operatortop--];
-        int ans = performOperation(a, b, c);
+        int val2 = valuestack[valuetop--];
+        int val1 = valuestack[valuetop--];
+        char operator = operatorstack[operatortop--];
+        int ans = performOperation(val1, val2, operator);
         valuestack[++valuetop] = ans;
     }
     return valuestack[valuetop];
@@ -95,11 +95,11 @@ int evaluate(char s[])
 
 int main()
 {
-    char exp[MAX];
+    char expression[MAX];
     printf("enter expression: ");
-    fgets(exp, MAX, stdin);
-    exp[strcspn(exp, "\n")] = 0;
-    int result = evaluate(exp);
+    fgets(expression, MAX, stdin);
+    expression[strcspn(expression, "\n")] = 0;
+    int result = evaluate(expression);
     printf("Result: %d\n", result);
     return 0;
 }

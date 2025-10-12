@@ -1,16 +1,17 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 struct students
 {
     int rollno;
     char name[30];
-    int marks[3];
-    int total_marks;
-    int average_marks;
+    float marks[3];
+    float total_marks;
+    float average_marks;
     char grade;
 };
 
-int find_total_marks(struct students student)
+float find_total_marks(struct students student)
 {
     return student.marks[0] + student.marks[1] + student.marks[2];
 }
@@ -37,7 +38,6 @@ char find_grade(struct students student)
 
 void find_performance(char grade)
 {
-
     int star = 0;
     switch (grade)
     {
@@ -78,23 +78,68 @@ int main()
 {
     struct students students[100];
     int n;
-    printf("enter number of students: ");
-    scanf("%d", &n);
-    if (n > 100 || n < 1)
+    char input[100];
+
+    while (1)
     {
-        printf("invalid number of students, please enter a number between 1 and 100 \n");
-        return 1;
+        printf("enter number of students (1-100): ");
+        fgets(input, sizeof(input), stdin);
+
+        input[strcspn(input, "\n")] = 0;
+
+        int valid = 1;
+        for (int i = 0; input[i] != '\0'; i++)
+        {
+            if (!isdigit(input[i]))
+            {
+                valid = 0;
+                break;
+            }
+        }
+
+        if (!valid)
+        {
+            printf("invalid input, enter a positive integer\n");
+            continue;
+        }
+
+        n = atoi(input);
+
+        if (n < 1 || n > 100)
+        {
+            printf("number is  out of range, enter between 1 and 100\n");
+            continue;
+        }
+
+        break;
     }
+
     for (int index = 0; index < n; index++)
     {
-        printf("enter details of student %d (Roll_Number Name Marks1 Marks2 Marks3) : ", index + 1);
-        scanf("%d %s %d %d %d", &students[index].rollno, students[index].name, &students[index].marks[0], &students[index].marks[1], &students[index].marks[2]);
-        if (students[index].marks[0] < 0 || students[index].marks[0] > 100 || students[index].marks[1] < 0 || students[index].marks[1] > 100 || students[index].marks[2] < 0 || students[index].marks[2] > 100)
+        printf("\nenter details like Roll_Number, Name, Marks1, Marks2, Marks3 for student %d: ", index + 1);
+
+        if (scanf("%d %s %f %f %f", &students[index].rollno, students[index].name, &students[index].marks[0], &students[index].marks[1], &students[index].marks[2]) != 5)
         {
-            printf("invalid marks, please enter marks between 0 and 100 \n");
+            printf("invalid input format please enter: Roll_Number Name Marks1 Marks2 Marks3\n");
             return 1;
         }
+
+        if (students[index].rollno < 1 || students[index].rollno > 99999)
+        {
+            printf("error: Roll number must be between 1 and 99999\n");
+            return 1;
+        }
+
+        for (int j = 0; j < 3; j++)
+        {
+            if (students[index].marks[j] < 0 || students[index].marks[j] > 100)
+            {
+                printf(" error: marks%d must be between 0 and 100\n", j + 1);
+                return 1;
+            }
+        }
     }
+
     printf("\n\n************** Student Data *************\n\n");
     for (int index = 0; index < n; index++)
     {
@@ -104,9 +149,10 @@ int main()
 
         printf("Roll no : %d\n", students[index].rollno);
         printf("Name : %s\n", students[index].name);
-        printf("Total Marks : %d\n", students[index].total_marks);
-        printf("Average Marks : %d\n", students[index].average_marks);
+        printf("Total Marks : %.2f\n", students[index].total_marks);
+        printf("Average Marks : %.2f\n", students[index].average_marks);
         printf("Grade : %c\n", students[index].grade);
+
         char student_grade = find_grade(students[index]);
         if (student_grade == 'F')
         {
@@ -114,13 +160,12 @@ int main()
             continue;
         }
 
-        printf("Perfomance : ");
+        printf("Performance : ");
         find_performance(student_grade);
-
         printf("\n\n");
     }
 
-    printf("\n\nList of Roll Numbers (via recursion) : ");
+    printf("List of Roll Numbers (via recursion): ");
     ListOfRollNo(students, 0, n);
     printf("\n\n");
 

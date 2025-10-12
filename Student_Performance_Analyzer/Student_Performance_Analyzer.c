@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-struct student
+struct students
 {
     int rollno;
     char name[30];
@@ -10,19 +10,19 @@ struct student
     char grade;
 };
 
-int find_total_marks(struct student s)
+int find_total_marks(struct students student)
 {
-    return s.marks[0] + s.marks[1] + s.marks[2];
+    return student.marks[0] + student.marks[1] + student.marks[2];
 }
 
-float find_average_marks(struct student s)
+float find_average_marks(struct students student)
 {
-    return find_total_marks(s) / 3.0;
+    return find_total_marks(student) / 3.0;
 }
 
-char find_grade(struct student s)
+char find_grade(struct students student)
 {
-    float averageMarks = find_average_marks(s);
+    float averageMarks = find_average_marks(student);
     if (averageMarks >= 85)
         return 'A';
     else if (averageMarks >= 70)
@@ -66,38 +66,48 @@ void find_performance(char grade)
     }
 }
 
-void ListOfRollNo(struct student s[], int index, int totalStudent)
+void ListOfRollNo(struct students students[], int index, int totalStudent)
 {
     if (index == totalStudent)
         return;
-    printf("%d ", s[index].rollno);
-    ListOfRollNo(s, index + 1, totalStudent);
+    printf("%d ", students[index].rollno);
+    ListOfRollNo(students, index + 1, totalStudent);
 }
 
 int main()
 {
-    struct student students[100];
+    struct students students[100];
     int n;
     printf("enter number of students: ");
     scanf("%d", &n);
-    for (int i = 0; i < n; i++)
+    if (n > 100 || n < 1)
     {
-        printf("enter details of student %d (Roll_Number Name Marks1 Marks2 Marks3) : ", i + 1);
-        scanf("%d %s %d %d %d", &students[i].rollno, students[i].name, &students[i].marks[0], &students[i].marks[1], &students[i].marks[2]);
+        printf("invalid number of students, please enter a number between 1 and 100 \n");
+        return 1;
+    }
+    for (int index = 0; index < n; index++)
+    {
+        printf("enter details of student %d (Roll_Number Name Marks1 Marks2 Marks3) : ", index + 1);
+        scanf("%d %s %d %d %d", &students[index].rollno, students[index].name, &students[index].marks[0], &students[index].marks[1], &students[index].marks[2]);
+        if (students[index].marks[0] < 0 || students[index].marks[0] > 100 || students[index].marks[1] < 0 || students[index].marks[1] > 100 || students[index].marks[2] < 0 || students[index].marks[2] > 100)
+        {
+            printf("invalid marks, please enter marks between 0 and 100 \n");
+            return 1;
+        }
     }
     printf("\n\n************** Student Data *************\n\n");
-    for (int i = 0; i < n; i++)
+    for (int index = 0; index < n; index++)
     {
-        students[i].total_marks = find_total_marks(students[i]);
-        students[i].average_marks = find_average_marks(students[i]);
-        students[i].grade = find_grade(students[i]);
+        students[index].total_marks = find_total_marks(students[index]);
+        students[index].average_marks = find_average_marks(students[index]);
+        students[index].grade = find_grade(students[index]);
 
-        printf("Roll no : %d\n", students[i].rollno);
-        printf("Name : %s\n", students[i].name);
-        printf("Total Marks : %d\n", students[i].total_marks);
-        printf("Average Marks : %d\n", students[i].average_marks);
-        printf("Grade : %c\n", students[i].grade);
-        char student_grade = find_grade(students[i]);
+        printf("Roll no : %d\n", students[index].rollno);
+        printf("Name : %s\n", students[index].name);
+        printf("Total Marks : %d\n", students[index].total_marks);
+        printf("Average Marks : %d\n", students[index].average_marks);
+        printf("Grade : %c\n", students[index].grade);
+        char student_grade = find_grade(students[index]);
         if (student_grade == 'F')
         {
             printf("\n\n");

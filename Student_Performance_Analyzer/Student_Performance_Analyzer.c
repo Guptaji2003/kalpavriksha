@@ -1,30 +1,69 @@
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 #include <stdlib.h>
 
-struct students
+typedef struct
 {
-    int rollno;
-    char name[30];
-    float marks[3];
-    float total_marks;
-    float average_marks;
+    int rollNumber;
+    char studentName[50];
+    double subjectMark1;
+    double subjectMark2;
+    double subjectMark3;
+    double totalMarks;
+    double averageMarks;
     char grade;
-};
+} Student;
 
-float find_total_marks(struct students student)
+void printRollNumbers(Student studentList[], int currentIndex, int totalStudents)
 {
-    return student.marks[0] + student.marks[1] + student.marks[2];
+    if (currentIndex == totalStudents)
+        return;
+
+    printf("%d ", studentList[currentIndex].rollNumber);
+    printRollNumbers(studentList, currentIndex + 1, totalStudents);
 }
 
-float find_average_marks(struct students student)
+int isValidIntegerInput(char *inputString)
 {
-    return find_total_marks(student) / 3.0;
+    if (inputString[0] == '\0')
+        return 0;
+
+    for (int index = 0; inputString[index] != '\0'; index++)
+    {
+        if (!isdigit(inputString[index]))
+            return 0;
+    }
+    return 1;
 }
 
-char find_grade(struct students student)
+void sortStudents_ByRollNumber(Student studentList[], int totalStudents)
 {
-    float averageMarks = find_average_marks(student);
-    if (averageMarks >= 85)
+    for (int outerIndex = 0; outerIndex < totalStudents - 1; outerIndex++)
+    {for (int innerIndex = 0; innerIndex < totalStudents - outerIndex - 1; innerIndex++)
+        {
+            if (studentList[innerIndex].rollNumber > studentList[innerIndex + 1].rollNumber){
+                Student tempStudent = studentList[innerIndex];
+                studentList[innerIndex] = studentList[innerIndex + 1];
+
+                studentList[innerIndex + 1] = tempStudent;
+            }
+        }
+    }
+}
+
+double find_Total_Marks(double mark1, double mark2, double mark3){
+    return mark1 + mark2 + mark3;
+}
+
+double find_Average_Marks(double totalMarks)
+{
+    return totalMarks / 3.0;
+}
+
+char find_Grade(double averageMarks)
+{
+    if (averageMarks >= 85 && averageMarks <= 100)
         return 'A';
     else if (averageMarks >= 70)
         return 'B';
@@ -36,137 +75,111 @@ char find_grade(struct students student)
         return 'F';
 }
 
-void find_performance(char grade)
+void find_Performance(char grade)
 {
-    int star = 0;
-    switch (grade)
-    {
-    case 'A':
-        star = 5;
-        break;
-    case 'B':
-        star = 4;
-        break;
-    case 'C':
-        star = 3;
-        break;
-    case 'D':
-        star = 2;
-        break;
-    default:
-        break;
-    }
+    if (grade == 'A')
+        printf("Performance: *****\n");
+    else if (grade == 'B')
+        printf("Performance: ****\n");
+    else if (grade == 'C')
+        printf("Performance: ***\n");
+    else if (grade == 'D')
+        printf("Performance: **\n");
 
-    if (grade == 'F')
-        return;
-
-    for (int i = 0; i < star; i++)
-    {
-        printf("* ");
-    }
+    printf("\n");
 }
 
-void ListOfRollNo(struct students students[], int index, int totalStudent)
+void displayAllStudentDetails(Student studentList[], int totalStudents)
 {
-    if (index == totalStudent)
-        return;
-    printf("%d ", students[index].rollno);
-    ListOfRollNo(students, index + 1, totalStudent);
+    for (int studentIndex = 0; studentIndex < totalStudents; studentIndex++)
+    {
+        printf("\n-------------------\n");
+        printf("Roll number : %d\n", studentList[studentIndex].rollNumber);
+        printf("Name  : %s\n", studentList[studentIndex].studentName);
+        printf("Total marks : %.2lf\n", studentList[studentIndex].totalMarks);
+
+        printf("Average marks : %.2lf\n", studentList[studentIndex].averageMarks);
+        printf("Grade   : %c\n", studentList[studentIndex].grade);
+
+        if (studentList[studentIndex].averageMarks >= 35)
+            find_Performance(studentList[studentIndex].grade);
+    }
 }
 
 int main()
 {
-    struct students students[100];
-    int n;
-    char input[100];
+    char inputBuffer[100];
+    int totalStudents;
 
-    while (1)
+    printf("enter the number of students  : ");
+    scanf("%s", inputBuffer);
+
+    if (!isValidIntegerInput(inputBuffer))
     {
-        printf("enter number of students (1-100): ");
-        fgets(input, sizeof(input), stdin);
-
-        input[strcspn(input, "\n")] = 0;
-
-        int valid = 1;
-        for (int i = 0; input[i] != '\0'; i++)
-        {
-            if (!isdigit(input[i]))
-            {
-                valid = 0;
-                break;
-            }
-        }
-
-        if (!valid)
-        {
-            printf("invalid input, enter a positive integer\n");
-            continue;
-        }
-
-        n = atoi(input);
-
-        if (n < 1 || n > 100)
-        {
-            printf("number is  out of range, enter between 1 and 100\n");
-            continue;
-        }
-
-        break;
+        printf("error: invalid input, please enter a valid integer for the number of students \n");
+        return 1;
     }
 
-    for (int index = 0; index < n; index++)
-    {
-        printf("\nenter details like Roll_Number, Name, Marks1, Marks2, Marks3 for student %d: ", index + 1);
+    totalStudents = atoi(inputBuffer);
 
-        if (scanf("%d %s %f %f %f", &students[index].rollno, students[index].name, &students[index].marks[0], &students[index].marks[1], &students[index].marks[2]) != 5)
+    if (totalStudents < 1 || totalStudents > 100)
+    {
+        printf("error: number of students must be between  [  1 and 100] \n");
+        return 1;
+    }
+
+    Student studentList[100];
+    char rollInputBuffer[50];
+
+    for (int studentIndex = 0; studentIndex < totalStudents; studentIndex++)
+    {
+        printf("\n enter roll_number, Name, Marks1, Marks2, Marks3 for student %d: ", studentIndex + 1);
+
+        if (scanf("%s %49s %lf %lf %lf", rollInputBuffer, studentList[studentIndex].studentName,
+                  &studentList[studentIndex].subjectMark1,
+                  &studentList[studentIndex].subjectMark2,
+                  &studentList[studentIndex].subjectMark3) != 5)
         {
-            printf("invalid input format please enter: Roll_Number Name Marks1 Marks2 Marks3\n");
+            printf("error: invalid input format, please enter: roll_Number Name Marks1 marks2 marks3 \n");
             return 1;
         }
 
-        if (students[index].rollno < 1 || students[index].rollno > 99999)
+        if (!isValidIntegerInput(rollInputBuffer))
         {
-            printf("error: Roll number must be between 1 and 99999\n");
+            printf("error: roll number must be a positive integer\n");
             return 1;
         }
 
-        for (int j = 0; j < 3; j++)
+        studentList[studentIndex].rollNumber = atoi(rollInputBuffer);
+
+        if (studentList[studentIndex].rollNumber <= 0 || studentList[studentIndex].rollNumber > 99999)
         {
-            if (students[index].marks[j] < 0 || students[index].marks[j] > 100)
-            {
-                printf(" error: marks%d must be between 0 and 100\n", j + 1);
-                return 1;
-            }
-        }
-    }
-
-    printf("\n\n************** Student Data *************\n\n");
-    for (int index = 0; index < n; index++)
-    {
-        students[index].total_marks = find_total_marks(students[index]);
-        students[index].average_marks = find_average_marks(students[index]);
-        students[index].grade = find_grade(students[index]);
-
-        printf("Roll no : %d\n", students[index].rollno);
-        printf("Name : %s\n", students[index].name);
-        printf("Total Marks : %.2f\n", students[index].total_marks);
-        printf("Average Marks : %.2f\n", students[index].average_marks);
-        printf("Grade : %c\n", students[index].grade);
-
-        char student_grade = find_grade(students[index]);
-        if (student_grade == 'F')
-        {
-            printf("\n\n");
-            continue;
+            printf("error: roll number must be between (1 and 99999)\n");
+            return 1;
         }
 
-        printf("Performance : ");
-        find_performance(student_grade);
-        printf("\n\n");
+        if (studentList[studentIndex].subjectMark1 < 0 || studentList[studentIndex].subjectMark1 > 100 ||
+            studentList[studentIndex].subjectMark2 < 0 || studentList[studentIndex].subjectMark2 > 100 ||
+            studentList[studentIndex].subjectMark3 < 0 || studentList[studentIndex].subjectMark3 > 100)
+        {
+            printf("error: marks must be between (0 and 100) \n");
+            return 1;
+        }
+
+        studentList[studentIndex].totalMarks = find_Total_Marks(
+            studentList[studentIndex].subjectMark1,
+            studentList[studentIndex].subjectMark2,
+            studentList[studentIndex].subjectMark3);
+
+        studentList[studentIndex].averageMarks = find_Average_Marks(studentList[studentIndex].totalMarks);
+        studentList[studentIndex].grade = find_Grade(studentList[studentIndex].averageMarks);
     }
 
-    printf("List of Roll Numbers (via recursion): ");
-    ListOfRollNo(students, 0, n);
+    sortStudents_ByRollNumber(studentList, totalStudents);
+    displayAllStudentDetails(studentList, totalStudents);
+
+    printf("\nlist of Roll Numbers (via recursion): ");
+    printRollNumbers(studentList, 0, totalStudents);
     printf("\n\n");
 
     return 0;

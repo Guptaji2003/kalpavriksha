@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <ctype.h>
 
 void swap(int *matrixptr1, int *matrixptr2)
 
@@ -8,7 +9,7 @@ void swap(int *matrixptr1, int *matrixptr2)
 
     int temporaryVariable = *matrixptr1;
     *matrixptr1 = *matrixptr2;
-    *matrixptr2 =temporaryVariable;
+    *matrixptr2 = temporaryVariable;
 }
 
 void reverse(int *matrixptr1, int *matrixptr2)
@@ -83,7 +84,7 @@ int main()
     {
         for (int column = 0; column < lengthOfMatrix; column++)
         {
-            scanf("%d", (ptr + row * lengthOfMatrix + column));
+            *(ptr + row * lengthOfMatrix + column) = rand() % 256;
         }
     }
 

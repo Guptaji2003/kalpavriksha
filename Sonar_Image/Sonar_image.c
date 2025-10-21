@@ -58,18 +58,73 @@ void displayMatrix(int lengthOfMatrix, int *ptr)
     }
 }
 
+int isEmptyInput(const char *input)
+{
+    return input[0] == '\n' || input[0] == '\0';
+}
+
+int isSpacesOnlyInput(const char *input)
+{
+    int i = 0;
+    while (input[i] != '\0' && input[i] != '\n')
+    {
+        if (!isspace((unsigned char)input[i]))
+            return 0;
+        i++;
+    }
+    return 1;
+}
+
+void matrixLengthValidation(int *lengthOfMatrix)
+{
+    char ch;
+    char input[100];
+
+    do
+    {
+        printf("Enter a number between (2-10): ");
+
+        if (fgets(input, sizeof(input), stdin) == NULL)
+        {
+            printf("Error in reading the input, try again\n");
+            continue;
+        }
+
+        if (isEmptyInput(input))
+        {
+            printf("Empty input, Please enter a number\n");
+            continue;
+        }
+
+        if (isSpacesOnlyInput(input))
+        {
+            printf("input contains only spaces, Please enter a valid number\n");
+            continue;
+        }
+
+        if (sscanf(input, "%d%c", lengthOfMatrix, &ch) != 2 || ch != '\n')
+        {
+            printf("You entered an invalid input, please try again\n");
+            continue;
+        }
+
+        if (*lengthOfMatrix < 2 || *lengthOfMatrix > 10)
+        {
+            printf("You entered invalid input, please enter between (2-10)\n");
+            continue;
+        }
+
+        printf("\nYou entered a valid input: %d\n\n", *lengthOfMatrix);
+        break;
+
+    } while (1);
+}
+
 int main()
 {
 
     int lengthOfMatrix;
-    printf("Enter the size of array : ");
-    scanf("%d", &lengthOfMatrix);
-
-    if (lengthOfMatrix < 2 || lengthOfMatrix > 10 || isdigit(lengthOfMatrix))
-    {
-        printf("Invalid input, n should be (2-10)\n");
-        return 1;
-    }
+    matrixLengthValidation(&lengthOfMatrix);
 
     int *ptr = (int *)malloc(lengthOfMatrix * lengthOfMatrix * sizeof(int));
     if (ptr == NULL)

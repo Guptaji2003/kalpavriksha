@@ -15,17 +15,33 @@ void productNameValidation(char *productName)
 {
     while (1)
     {
-        printf("Enter product name: ");
-        fgets(productName, 50, stdin);
+        printf("Enter product name (max 50 chars): ");
+
+        if (fgets(productName, 51, stdin) == NULL)
+        {
+            printf("Input error! Try again.\n");
+            continue;
+        }
 
         size_t length = strlen(productName);
+
+        if (length > 0 && productName[length - 1] != '\n')
+        {
+            int ch;
+            while ((ch = getchar()) != '\n' && ch != EOF)
+                ;
+
+            printf("Product name too long! Max 50 characters allowed.\n");
+            continue;
+        }
+
         if (length > 0 && productName[length - 1] == '\n')
             productName[length - 1] = '\0';
 
         int onlySpaces = 1;
-        for (size_t index = 0; index < strlen(productName); index++)
+        for (size_t i = 0; i < strlen(productName); i++)
         {
-            if (!isspace(productName[index]))
+            if (!isspace((unsigned char)productName[i]))
             {
                 onlySpaces = 0;
                 break;
@@ -34,19 +50,14 @@ void productNameValidation(char *productName)
 
         if (strlen(productName) == 0 || onlySpaces)
         {
-            printf("Product name cannot be empty or contain only spaces.\n");
-            continue;
-        }
-
-        if (strlen(productName) > 50)
-        {
-            printf("Product name too long (max 50 characters).\n");
+            printf("Product name cannot be empty or only spaces.\n");
             continue;
         }
 
         break;
     }
 }
+
 void inventoryLengthValidation(int *inventoryLength)
 {
     char extra;
@@ -73,10 +84,11 @@ void inventoryLengthValidation(int *inventoryLength)
 }
 void productPriceValidation(float *productPrice)
 {
+    char extra;
     while (1)
     {
         printf("Enter product price (0-100000): ");
-        if (scanf("%f", productPrice) != 1)
+        if (scanf("%f%c", productPrice,&extra) != 2 || extra!='\n')
         {
             printf("Invalid input. Please enter a valid number.\n");
             while (getchar() != '\n')
@@ -209,15 +221,22 @@ void addNewProduct(int *productCount, int *inventoryLength, struct Product **pro
 
     printf("\nPlease enter the %dth product details-----\n", *productCount + 1);
 
+retry_id:
     productIdValidation(&((*products + *productCount)->product_id));
-    for (int i = 0; i < *productCount; i++)
+
+    int duplicate = 0;
+    for (int j = 0; j < *productCount; j++)
     {
-        if (((*products + *productCount)->product_id) == (*products + i)->product_id)
+        if (((*products + *productCount)->product_id) == (*products + j)->product_id)
         {
-            printf("Product Id should be uniqe, This is already present.\n");
-            return;
+            printf("Product ID already exists. Please enter a unique ID.\n");
+            duplicate = 1;
+            break;
         }
     }
+
+    if (duplicate)
+        goto retry_id;
 
     productNameValidation((*products + *productCount)->product_name);
     productPriceValidation(&((*products + *productCount)->product_price));
@@ -308,15 +327,12 @@ void searchProductByName(struct Product *products, int productCount)
         if (strcasecmp((products + i)->product_name, name) == 0)
         {
             found = 1;
-            printf("\nProduct Found-\n");
             printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", (products + i)->product_id, (products + i)->product_name, (products + i)->product_price, (products + i)->product_quantity);
-
-            break;
         }
     }
 
     if (found)
-        printf("\nProduct found successfully.\n");
+        printf("\nProducts found successfully.\n");
     else
         printf("\nNo product found with name \"%s\".\n", name);
 }
@@ -334,8 +350,7 @@ void searchProductByPrice(struct Product *products, int productCount)
         if (minPrice <= (products + i)->product_price && maxPrice >= (products + i)->product_price)
         {
             found = 1;
-            printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d", (products + i)->product_id, (products + i)->product_name, (products + i)->product_price, (products + i)->product_quantity);
-            break;
+            printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", (products + i)->product_id, (products + i)->product_name, (products + i)->product_price, (products + i)->product_quantity);
         }
     }
     if (found)

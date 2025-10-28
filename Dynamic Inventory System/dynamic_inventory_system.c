@@ -289,28 +289,38 @@ void searchProductById(struct Product *products, int productCount)
 }
 void searchProductByName(struct Product *products, int productCount)
 {
-    char name[30], found = 0;
-    printf("Enter product name: ");
-    scanf("%s", name);
+    char name[50];
+    int found = 0;
+
+    printf("Enter product name to search: ");
+    getchar();
+    fgets(name, sizeof(name), stdin);
+    name[strcspn(name, "\n")] = '\0';
+
+    if (strlen(name) == 0)
+    {
+        printf("Product name cannot be empty!\n");
+        return;
+    }
 
     for (int i = 0; i < productCount; i++)
     {
-        if (strstr((products + i)->product_name, name))
+        if (strcasecmp((products + i)->product_name, name) == 0)
         {
             found = 1;
-            printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d", (products + i)->product_id, (products + i)->product_name, (products + i)->product_price, (products + i)->product_quantity);
+            printf("\nProduct Found-\n");
+            printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", (products + i)->product_id, (products + i)->product_name, (products + i)->product_price, (products + i)->product_quantity);
+
             break;
         }
     }
+
     if (found)
-    {
         printf("\nProduct found successfully.\n");
-    }
     else
-    {
-        printf("\nProduct not found.\n");
-    }
+        printf("\nNo product found with name \"%s\".\n", name);
 }
+
 void searchProductByPrice(struct Product *products, int productCount)
 {
     float minPrice, maxPrice;

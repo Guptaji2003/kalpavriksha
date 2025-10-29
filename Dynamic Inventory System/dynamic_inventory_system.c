@@ -108,10 +108,13 @@ void productPriceValidation(float *productPrice)
 }
 void minPriceValidation(float *minPrice)
 {
+        char extrachar;
+
     while (1)
     {
+     
         printf("Enter minimum price: ");
-        if (scanf("%f", minPrice) != 1)
+        if (scanf("%f%c", minPrice,&extrachar) != 2 || extrachar!='\n')
         {
             printf("Invalid input. Please enter a valid number.\n");
             while (getchar() != '\n')
@@ -131,10 +134,11 @@ void minPriceValidation(float *minPrice)
 }
 void maxPriceValidation(float *maxPrice, float minPrice)
 {
+    char extrachar;
     while (1)
     {
         printf("Enter maximum price: ");
-        if (scanf("%f", maxPrice) != 1)
+        if (scanf("%f%c", maxPrice,&extrachar) != 2 || extrachar!='\n')
         {
             printf("Invalid input. Please enter a valid number.\n");
             while (getchar() != '\n')
@@ -451,14 +455,15 @@ int main()
     printf("8. Exit \n");
     while (1)
     {
+        char extra;
         printf("Enter your choice: ");
-        if (scanf("%d", &choice) != 1)
+        if (scanf("%d%c", &choice,&extra) != 2 || extra!='\n')
         {
             printf("Invalid input, Please enter a number between 1-8.\n");
             while (getchar() != '\n')
                 ;
             continue;
-        }
+        }else{
 
         switch (choice)
         {
@@ -491,6 +496,7 @@ int main()
             printf("Invalid choice. Please try again.\n");
             continue;
         }
+    }
     }
     return 0;
 }

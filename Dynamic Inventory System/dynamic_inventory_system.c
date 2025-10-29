@@ -311,6 +311,8 @@ void searchProductById(struct Product *products, int productCount)
     }
 }
 
+
+
 static int containsIgnoreCase(const char *mainString, const char *searchSubstring)
 {
     size_t mainLength = strlen(mainString);
@@ -321,16 +323,18 @@ static int containsIgnoreCase(const char *mainString, const char *searchSubstrin
 
     for (size_t mainIndex = 0; mainIndex <= mainLength - searchLength; ++mainIndex)
     {
-        size_t matchIndex;
-        for (matchIndex = 0; matchIndex < searchLength; ++matchIndex)
+        size_t matchIndex = 0;
+        while (matchIndex < searchLength &&
+               tolower((unsigned char)mainString[mainIndex + matchIndex]) ==
+               tolower((unsigned char)searchSubstring[matchIndex]))
         {
-            if (tolower((unsigned char)mainString[mainIndex + matchIndex]) !=
-                tolower((unsigned char)searchSubstring[matchIndex]))
-                break;
+            matchIndex++;
         }
+
         if (matchIndex == searchLength)
             return 1;
     }
+
     return 0;
 }
 
@@ -412,6 +416,7 @@ void searchProductByName(struct Product *products, int totalProducts)
     else
         printf("Matching products displayed.\n");
 }
+
 
 
 

@@ -23,9 +23,9 @@ void productNameValidation(char *productName)
             continue;
         }
 
-        size_t length = strlen(productName);
+        size_t namelength = strlen(productName);
 
-        if (length > 0 && productName[length - 1] != '\n')
+        if (namelength > 0 && productName[namelength - 1] != '\n')
         {
             int ch;
             while ((ch = getchar()) != '\n' && ch != EOF)
@@ -35,13 +35,13 @@ void productNameValidation(char *productName)
             continue;
         }
 
-        if (length > 0 && productName[length - 1] == '\n')
-            productName[length - 1] = '\0';
+        if (namelength > 0 && productName[namelength - 1] == '\n')
+            productName[namelength - 1] = '\0';
 
         int onlySpaces = 1;
-        for (size_t i = 0; i < strlen(productName); i++)
+        for (size_t nameIndex = 0; nameIndex < strlen(productName); nameIndex++)
         {
-            if (!isspace((unsigned char)productName[i]))
+            if (!isspace((unsigned char)productName[nameIndex]))
             {
                 onlySpaces = 0;
                 break;
@@ -60,11 +60,11 @@ void productNameValidation(char *productName)
 
 void inventoryLengthValidation(int *inventoryLength)
 {
-    char extra;
+    char extrachar;
     while (1)
     {
         printf("\nEnter number of products (1-100): ");
-        if (scanf("%d%c", inventoryLength, &extra) != 2 || extra != '\n')
+        if (scanf("%d%c", inventoryLength, &extrachar) != 2 || extrachar != '\n')
         {
             printf("\nInvalid input, Please try again.\n");
             while (getchar() != '\n')
@@ -84,11 +84,11 @@ void inventoryLengthValidation(int *inventoryLength)
 }
 void productPriceValidation(float *productPrice)
 {
-    char extra;
+    char extrachar;
     while (1)
     {
         printf("Enter product price (0-100000): ");
-        if (scanf("%f%c", productPrice,&extra) != 2 || extra!='\n')
+        if (scanf("%f%c", productPrice,&extrachar) != 2 || extrachar!='\n')
         {
             printf("Invalid input. Please enter a valid number.\n");
             while (getchar() != '\n')
@@ -159,11 +159,11 @@ void maxPriceValidation(float *maxPrice, float minPrice)
 }
 void productIdValidation(int *productId)
 {
-    char extra;
+    char extrachar;
     while (1)
     {
         printf("Enter productId (1-10000): ");
-        if (scanf("%d%c", productId, &extra) != 2 || extra != '\n')
+        if (scanf("%d%c", productId, &extrachar) != 2 || extrachar != '\n')
         {
             printf("\nInvalid productId,Please try again.\n");
             while (getchar() != '\n')
@@ -183,11 +183,11 @@ void productIdValidation(int *productId)
 }
 void productQuantityValidation(int *productQuantity)
 {
-    char extra;
+    char extrachar;
     while (1)
     {
         printf("Enter productQuantity (0-1000000): ");
-        if (scanf("%d%c", productQuantity, &extra) != 2 || extra != '\n')
+        if (scanf("%d%c", productQuantity, &extrachar) != 2 || extrachar != '\n')
         {
             printf("\nInvalid productQuantity, Please try again.\n");
             while (getchar() != '\n')
@@ -225,9 +225,9 @@ retry_id:
     productIdValidation(&((*products + *productCount)->product_id));
 
     int duplicate = 0;
-    for (int j = 0; j < *productCount; j++)
+    for (int productIndex = 0; productIndex < *productCount; productIndex++)
     {
-        if (((*products + *productCount)->product_id) == (*products + j)->product_id)
+        if (((*products + *productCount)->product_id) == (*products + productIndex)->product_id)
         {
             printf("Product ID already exists. Please enter a unique ID.\n");
             duplicate = 1;
@@ -253,9 +253,9 @@ void showAllProducts(int productCount, struct Product *products)
         return;
     }
     printf("\nDisplay all products-----------\n");
-    for (int i = 0; i < productCount; i++)
+    for (int productIndex = 0; productIndex < productCount; productIndex++)
     {
-        printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", (products + i)->product_id, (products + i)->product_name, (products + i)->product_price, (products + i)->product_quantity);
+        printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", (products + productIndex)->product_id, (products + productIndex)->product_name, (products + productIndex)->product_price, (products + productIndex)->product_quantity);
     }
 }
 void updateProductQuantity(struct Product *products, int productCount)
@@ -264,12 +264,12 @@ void updateProductQuantity(struct Product *products, int productCount)
     int found = 0;
     productIdValidation(&productId);
 
-    for (int i = 0; i < productCount; i++)
+    for (int productIndex = 0; productIndex < productCount; productIndex++)
     {
-        if (productId == (products + i)->product_id)
+        if (productId == (products + productIndex)->product_id)
         {
             found = 1;
-            productQuantityValidation(&(products + i)->product_quantity);
+            productQuantityValidation(&(products + productIndex)->product_quantity);
             break;
         }
     }
@@ -288,12 +288,12 @@ void searchProductById(struct Product *products, int productCount)
 
     productIdValidation(&productId);
 
-    for (int i = 0; i < productCount; i++)
+    for (int productIndex = 0; productIndex < productCount; productIndex++)
     {
-        if (productId == (products + i)->product_id)
+        if (productId == (products + productIndex)->product_id)
         {
             found = 1;
-            printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d", (products + i)->product_id, (products + i)->product_name, (products + i)->product_price, (products + i)->product_quantity);
+            printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d", (products + productIndex)->product_id, (products + productIndex)->product_name, (products + productIndex)->product_price, (products + productIndex)->product_quantity);
             break;
         }
     }
@@ -322,12 +322,12 @@ void searchProductByName(struct Product *products, int productCount)
         return;
     }
 
-    for (int i = 0; i < productCount; i++)
+    for (int productIndex = 0; productIndex < productCount; productIndex++)
     {
-        if (strcasecmp((products + i)->product_name, name) == 0)
+        if (strcasecmp((products + productIndex)->product_name, name) == 0)
         {
             found = 1;
-            printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", (products + i)->product_id, (products + i)->product_name, (products + i)->product_price, (products + i)->product_quantity);
+            printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", (products + productIndex)->product_id, (products + productIndex)->product_name, (products + productIndex)->product_price, (products + productIndex)->product_quantity);
         }
     }
 
@@ -345,12 +345,12 @@ void searchProductByPrice(struct Product *products, int productCount)
     minPriceValidation(&minPrice);
     maxPriceValidation(&maxPrice, minPrice);
 
-    for (int i = 0; i < productCount; i++)
+    for (int productIndex = 0; productIndex < productCount; productIndex++)
     {
-        if (minPrice <= (products + i)->product_price && maxPrice >= (products + i)->product_price)
+        if (minPrice <= (products + productIndex)->product_price && maxPrice >= (products + productIndex)->product_price)
         {
             found = 1;
-            printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", (products + i)->product_id, (products + i)->product_name, (products + i)->product_price, (products + i)->product_quantity);
+            printf("Product ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", (products + productIndex)->product_id, (products + productIndex)->product_name, (products + productIndex)->product_price, (products + productIndex)->product_quantity);
         }
     }
     if (found)
@@ -367,14 +367,14 @@ void deleteProductById(struct Product *products, int *productCount)
     int productId, found = 0;
     productIdValidation(&productId);
 
-    for (int i = 0; i < *productCount; i++)
+    for (int productIndex = 0; productIndex < *productCount; productIndex++)
     {
-        if ((products + i)->product_id == productId)
+        if ((products + productIndex)->product_id == productId)
         {
             found = 1;
-            for (int j = i; j < *productCount - 1; j++)
+            for (int shiftingIndex = productIndex; shiftingIndex < *productCount - 1; shiftingIndex++)
             {
-                *(products + j) = *(products + j + 1);
+                *(products + shiftingIndex) = *(products + shiftingIndex + 1);
             }
             (*productCount)--;
             break;
@@ -394,17 +394,17 @@ void addInitialProducts(struct Product *products, int inventoryLength)
 {
     printf("\nEnter Initial %d Products ----\n", inventoryLength);
 
-    for (int i = 0; i < inventoryLength; i++)
+    for (int productIndex = 0; productIndex < inventoryLength; productIndex++)
     {
-        printf("\nPlease enter the %dth product details-----\n", i + 1);
+        printf("\nPlease enter the %dth product details-----\n", productIndex + 1);
 
     retry_id:
-        productIdValidation(&(products + i)->product_id);
+        productIdValidation(&(products + productIndex)->product_id);
 
         int duplicate = 0;
-        for (int j = 0; j < i; j++)
+        for (int initialIndex = 0; initialIndex < productIndex; initialIndex++)
         {
-            if ((products + j)->product_id == (products + i)->product_id)
+            if ((products + initialIndex)->product_id == (products + productIndex)->product_id)
             {
                 printf("Product ID already exists. Please enter a unique ID.\n");
                 duplicate = 1;
@@ -415,9 +415,9 @@ void addInitialProducts(struct Product *products, int inventoryLength)
         if (duplicate)
             goto retry_id;
 
-        productNameValidation((products + i)->product_name);
-        productPriceValidation(&(products + i)->product_price);
-        productQuantityValidation(&(products + i)->product_quantity);
+        productNameValidation((products + productIndex)->product_name);
+        productPriceValidation(&(products + productIndex)->product_price);
+        productQuantityValidation(&(products + productIndex)->product_quantity);
     }
 
     printf("\nAll initial products added successfully!\n");

@@ -456,6 +456,13 @@ void deleteProductById(struct Product *products, int *productCount)
                 *(products + shiftingIndex) = *(products + shiftingIndex + 1);
             }
             (*productCount)--;
+
+            struct Product *temp = realloc(products, (*productCount) * sizeof(struct Product));
+
+            if (temp != NULL)
+            {
+                products = temp;
+            }
             break;
         }
     }
@@ -532,15 +539,6 @@ int main()
     addInitialProducts(products, inventoryLength);
     productIndex = inventoryLength;
 
-    printf("========= INVENTORY MENU =========\n");
-    printf("1. Add New Product \n");
-    printf("2. Display All Products \n");
-    printf("3. Update Product Quantity \n");
-    printf("4. Search Product by ID \n");
-    printf("5. Search Product by Name \n");
-    printf("6. Search Product by Price Range \n");
-    printf("7. Delete Product \n");
-    printf("8. Exit \n");
     while (1)
     {
         printMenu();

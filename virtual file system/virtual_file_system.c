@@ -5,6 +5,7 @@
 
 #define TOTAL_BLOCKS 1024
 #define BLOCK_SIZE 512
+#define MAX_BLOCKS_PER_FILE 100
 
 char virtualDisk[TOTAL_BLOCKS][BLOCK_SIZE];
 
@@ -22,15 +23,20 @@ struct fileNode
     struct fileNode *parent;
     struct fileNode *next;
     struct fileNode *child;
-    int blockPointer[10];
+    int blockPointer[MAX_BLOCKS_PER_FILE];
 };
-void convertEscapes(char *str) {
+void convertEscapes(char *str)
+{
     int i = 0, j = 0;
-    while (str[i]) {
-        if (str[i] == '\\' && str[i + 1] == 'n') {
-            str[j++] = '\n';  
+    while (str[i])
+    {
+        if (str[i] == '\\' && str[i + 1] == 'n')
+        {
+            str[j++] = '\n';
             i += 2;
-        } else {
+        }
+        else
+        {
             str[j++] = str[i++];
         }
     }
@@ -140,7 +146,7 @@ void create_cmd(struct fileNode **cwd, char *name)
     temp->child = NULL;
     temp->isFile = 1;
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < MAX_BLOCKS_PER_FILE; i++)
     {
         temp->blockPointer[i] = -1;
     }
@@ -173,7 +179,7 @@ void write_cmd(struct fileNode **cwd, char *name, char *data, struct freeBlock *
     do
     {
         int j = 0;
-        while (j < 10 && trav->blockPointer[j] != -1)
+        while (j < MAX_BLOCKS_PER_FILE && trav->blockPointer[j] != -1)
         {
             j++;
         }
@@ -499,8 +505,9 @@ int main()
 
     struct freeBlock *head = NULL;
     struct freeBlock *tail = NULL;
-    for (int i = 0; i < 1024; i++)
+    for (int i = 0; i < TOTAL_BLOCKS; i++)
     {
+        virtualDisk[i][0] = '\0';
         addFreeBlock(&head, &tail, i);
     }
 
@@ -517,11 +524,22 @@ int main()
         if (strcmp(command, "mkdir") == 0)
         {
             scanf("%s", word);
+            if (strlen(word) > 49)
+            {
+                printf("Error: Directory name too long.\n");
+                continue;
+            }
             mkdir_cmd(&cwd, word);
         }
         else if (strcmp(command, "create") == 0)
         {
             scanf("%s", word);
+            if (strlen(word) > 49)
+            {
+                printf("Error: File name too long.\n");
+                continue;
+            }
+
             create_cmd(&cwd, word);
         }
         else if (strcmp(command, "write") == 0)

@@ -29,20 +29,39 @@ typedef struct
     Node *head;
     Node *tail;
 } LRUCache;
-void freeCache();
 
 LRUCache *cache = NULL;
+
+int getHashIndex(int key);
+char *skipSpace(char *s);
+Node *hashGet(int key);
+void hashPut(int key, Node *node);
+void hashRemove(int key);
+void addToFront(Node *node);
+void removeNode(Node *node);
+void moveToFront(Node *node);
+void evictLRU(void);
+void freeCache(void);
+void createCache(int capacity);
+char *getValue(int key);
+void putValue(int key, const char *value);
 
 int getHashIndex(int key)
 {
     int index = key % HASH_SIZE;
-    return (index < 0) ? index + HASH_SIZE : index;
+    if (index < 0)
+    {
+        index += HASH_SIZE;
+    }
+    return index;
 }
 
 char *skipSpace(char *alpha)
 {
     while (*alpha && isspace((unsigned char)*alpha))
+    {
         alpha++;
+    }
     return alpha;
 }
 
@@ -71,19 +90,23 @@ void removeNode(Node *node)
     {
         cache->head = node->next;
     }
+
     if (node->next)
     {
+
         node->next->prev = node->prev;
     }
     else
     {
         cache->tail = node->prev;
     }
+
+    node->prev = node->next = NULL;
 }
 
 void moveToFront(Node *node)
 {
-    if (cache->head == node)
+    if (!node || cache->head == node)
     {
         return;
     }
@@ -93,15 +116,16 @@ void moveToFront(Node *node)
 
 Node *hashGet(int key)
 {
-    int index = getHashIndex(key);
-    HashEntry *entry = cache->table[index];
-
+    if (!cache)
+    {
+        return NULL;
+    }
+    int idx = getHashIndex(key);
+    HashEntry *entry = cache->table[idx];
     while (entry)
     {
         if (entry->key == key)
-        {
             return entry->node;
-        }
         entry = entry->next;
     }
     return NULL;
@@ -109,32 +133,42 @@ Node *hashGet(int key)
 
 void hashPut(int key, Node *node)
 {
-    int index = getHashIndex(key);
-    HashEntry *newEntry = malloc(sizeof(HashEntry));
-    if (newEntry == NULL)
+    if (!cache)
     {
-        printf("Memory not allocated");
         return;
     }
-    newEntry->key = key;
-    newEntry->node = node;
-    newEntry->next = cache->table[index];
-    cache->table[index] = newEntry;
+    int idx = getHashIndex(key);
+    HashEntry *entry = malloc(sizeof(HashEntry));
+    if (!entry)
+    {
+        fprintf(stderr, "Out of memory.\n");
+        return;
+    }
+    entry->key = key;
+    entry->node = node;
+    entry->next = cache->table[idx];
+    cache->table[idx] = entry;
 }
 
 void hashRemove(int key)
 {
-    int index = getHashIndex(key);
-    HashEntry *entry = cache->table[index], *prev = NULL;
-
+    if (!cache)
+    {
+        return;
+    }
+    int idx = getHashIndex(key);
+    HashEntry *entry = cache->table[idx];
+    HashEntry *prev = NULL;
     while (entry)
     {
         if (entry->key == key)
         {
-            if (prev)
+            if (prev){
                 prev->next = entry->next;
-            else
-                cache->table[index] = entry->next;
+            }
+            else{
+                cache->table[idx] = entry->next;
+            }
             free(entry);
             return;
         }
@@ -143,40 +177,51 @@ void hashRemove(int key)
     }
 }
 
-void evictLRU()
+void evictLRU(void)
 {
-    if (!cache->tail)
+    if (!cache || !cache->tail)
     {
         return;
     }
     Node *lru = cache->tail;
     int key = lru->key;
-
     removeNode(lru);
     hashRemove(key);
     free(lru);
-    cache->size--;
+    if (cache->size > 0)
+    {
+        cache->size--;
+    }
 }
+
 void createCache(int capacity)
 {
+    if (capacity <= 0)
+    {
+        fprintf(stderr, "capacity must be positive\n");
+        return;
+    }
+
     if (cache)
     {
         freeCache();
     }
 
     cache = malloc(sizeof(LRUCache));
-    if (cache == NULL)
+    if (!cache)
     {
-        printf("Memory not allocated");
+        fprintf(stderr, "Out of memory creating cache.\n");
         return;
     }
+
     cache->capacity = capacity;
     cache->size = 0;
     cache->head = NULL;
     cache->tail = NULL;
-
-    for (int i = 0; i < HASH_SIZE; i++)
+    for (int i = 0; i < HASH_SIZE; ++i)
+    {
         cache->table[i] = NULL;
+    }
 
     printf("Cache created with capacity %d\n", capacity);
 }
@@ -184,56 +229,66 @@ void createCache(int capacity)
 char *getValue(int key)
 {
     if (!cache)
+    {
         return NULL;
-
+    }
     Node *node = hashGet(key);
     if (!node)
+    {
         return NULL;
-
+    }
     moveToFront(node);
     return node->value;
 }
 
-void putValue(int key, char *value)
+void putValue(int key, const char *value)
 {
     if (!cache)
     {
         printf("Cache not created yet!\n");
         return;
     }
+    if (!value)
+    {
+        return;
+    }
 
     Node *node = hashGet(key);
-
     if (node)
     {
-        strcpy(node->value, value);
+        strncpy(node->value, value, MAX_VALUE_LEN - 1);
+        node->value[MAX_VALUE_LEN - 1] = '\0';
         moveToFront(node);
         return;
     }
 
     if (cache->size == cache->capacity)
+    {
         evictLRU();
+    }
 
     Node *newNode = malloc(sizeof(Node));
-    if (newNode == NULL)
+    if (!newNode)
     {
-        printf("Memory not allocated");
+        fprintf(stderr, "Out of memory creating node.\n");
         return;
     }
     newNode->key = key;
-    strcpy(newNode->value, value);
-    newNode->prev = NULL;
-    newNode->next = NULL;
+    strncpy(newNode->value, value, MAX_VALUE_LEN - 1);
+    newNode->value[MAX_VALUE_LEN - 1] = '\0';
+    newNode->prev = newNode->next = NULL;
 
     addToFront(newNode);
     hashPut(key, newNode);
     cache->size++;
 }
 
-void freeCache()
+void freeCache(void)
 {
     if (!cache)
+    {
         return;
+    }
 
     Node *curr = cache->head;
     while (curr)
@@ -243,68 +298,88 @@ void freeCache()
         free(temp);
     }
 
-    for (int i = 0; i < HASH_SIZE; i++)
+    for (int i = 0; i < HASH_SIZE; ++i)
     {
-        HashEntry *h = cache->table[i];
-        while (h)
+        HashEntry *entry = cache->table[i];
+        while (entry)
         {
-            HashEntry *tmp = h;
-            h = h->next;
-            free(tmp);
+            HashEntry *temp = entry;
+            entry = entry->next;
+            free(temp);
         }
+        cache->table[i] = NULL;
     }
 
     free(cache);
     cache = NULL;
-    printf("Cache freed.\n");
 }
 
-int main()
+int main(void)
 {
-    char input[200], command[50], value[MAX_VALUE_LEN], extra;
+    char buffer[256];
+    char command[64];
+    char *args;
     int key, capacity;
+    char value[MAX_VALUE_LEN];
+    char extra;
 
     while (1)
     {
-        if (!fgets(input, sizeof(input), stdin))
+        if (!fgets(buffer, sizeof(buffer), stdin))
+        {
             break;
+        }
 
-        char *line = skipSpace(input);
-        if (sscanf(line, "%s", command) != 1)
+        args = skipSpace(buffer);
+        if (*args == '\0')
+        {
             continue;
+        }
 
-        line = strstr(line, command) + strlen(command);
-        line = skipSpace(line);
+        if (sscanf(args, "%63s", command) != 1)
+        {
+            continue;
+        }
+
+        args = strstr(args, command);
+        if (args)
+            args += strlen(command);
+        else
+            args = buffer + strlen(buffer);
+        args = skipSpace(args);
 
         if (strcmp(command, "createCache") == 0)
         {
-            int match = sscanf(line, "%d %c", &capacity, &extra);
-
-            if (match == 1 && capacity > 0)
+            int matched = sscanf(args, "%d %c", &capacity, &extra);
+            if (matched == 1 && capacity > 0)
             {
                 createCache(capacity);
             }
             else
             {
-                printf("Usage: createCache <positive int>\n");
+                printf("createCache capacity should >0\n");
             }
         }
-
         else if (strcmp(command, "put") == 0)
         {
-            int match = sscanf(line, "%d %s %c", &key, value, &extra);
-
-            if (match == 2)
+            int matched = sscanf(args, "%d %99s %c", &key, value, &extra);
+            if (matched == 2)
+            {
                 putValue(key, value);
-            else
+            }
+            else if (matched == 1)
+            {
                 printf("Usage: put <key> <value>\n");
+            }
+            else
+            {
+                printf("Usage: put <key> <value>\n");
+            }
         }
-
         else if (strcmp(command, "get") == 0)
         {
-            int match = sscanf(line, "%d %c", &key, &extra);
-
-            if (match == 1)
+            int matched = sscanf(args, "%d %c", &key, &extra);
+            if (matched == 1)
             {
                 char *res = getValue(key);
                 printf("%s\n", res ? res : "NULL");
@@ -314,20 +389,22 @@ int main()
                 printf("Usage: get <key>\n");
             }
         }
-
         else if (strcmp(command, "exit") == 0)
         {
-            if (*line != '\0')
-                printf("'exit' does not take arguments.\n");
+            if (*args != '\0')
+            {
+                printf("exit command does not take argument\n");
+            }
             else
             {
                 freeCache();
+                printf("Exiting...\n");
                 break;
             }
         }
         else
         {
-            printf("Unknown command!\n");
+            printf("Invalid command...");
         }
     }
 

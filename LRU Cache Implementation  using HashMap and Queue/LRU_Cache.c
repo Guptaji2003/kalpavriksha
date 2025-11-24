@@ -29,6 +29,7 @@ typedef struct
     Node *head;
     Node *tail;
 } LRUCache;
+void freeCache();
 
 LRUCache *cache = NULL;
 
@@ -156,13 +157,11 @@ void evictLRU()
     free(lru);
     cache->size--;
 }
-
 void createCache(int capacity)
 {
     if (cache)
     {
-        free(cache);
-        cache = NULL;
+        freeCache();
     }
 
     cache = malloc(sizeof(LRUCache));
@@ -216,7 +215,7 @@ void putValue(int key, char *value)
         evictLRU();
 
     Node *newNode = malloc(sizeof(Node));
-     if (newNode == NULL)
+    if (newNode == NULL)
     {
         printf("Memory not allocated");
         return;

@@ -110,6 +110,11 @@ void hashPut(int key, Node *node)
 {
     int index = getHashIndex(key);
     HashEntry *newEntry = malloc(sizeof(HashEntry));
+    if (newEntry == NULL)
+    {
+        printf("Memory not allocated");
+        return;
+    }
     newEntry->key = key;
     newEntry->node = node;
     newEntry->next = cache->table[index];
@@ -161,6 +166,11 @@ void createCache(int capacity)
     }
 
     cache = malloc(sizeof(LRUCache));
+    if (cache == NULL)
+    {
+        printf("Memory not allocated");
+        return;
+    }
     cache->capacity = capacity;
     cache->size = 0;
     cache->head = NULL;
@@ -206,6 +216,11 @@ void putValue(int key, char *value)
         evictLRU();
 
     Node *newNode = malloc(sizeof(Node));
+     if (newNode == NULL)
+    {
+        printf("Memory not allocated");
+        return;
+    }
     newNode->key = key;
     strcpy(newNode->value, value);
     newNode->prev = NULL;
@@ -249,7 +264,6 @@ int main()
 {
     char input[200], command[50], value[MAX_VALUE_LEN], extra;
     int key, capacity;
-
 
     while (1)
     {

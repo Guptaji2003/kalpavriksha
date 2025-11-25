@@ -163,10 +163,12 @@ void hashRemove(int key)
     {
         if (entry->key == key)
         {
-            if (prev){
+            if (prev)
+            {
                 prev->next = entry->next;
             }
-            else{
+            else
+            {
                 cache->table[idx] = entry->next;
             }
             free(entry);
@@ -322,9 +324,10 @@ int main(void)
     int key, capacity;
     char value[MAX_VALUE_LEN];
     char extra;
-
+    printf("LRU Cache...\n");
     while (1)
     {
+        printf("command >");
         if (!fgets(buffer, sizeof(buffer), stdin))
         {
             break;
@@ -357,7 +360,7 @@ int main(void)
             }
             else
             {
-                printf("createCache capacity should >0\n");
+                printf("createCache capacity should a positive Integer value\n");
             }
         }
         else if (strcmp(command, "put") == 0)

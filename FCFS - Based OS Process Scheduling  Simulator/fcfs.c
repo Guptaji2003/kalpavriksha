@@ -292,14 +292,16 @@ void printoutput(struct hashnode *hashmap[])
             struct Process *process = curr->process;
             int tat = (process->finish_time >= 0) ? (process->finish_time - process->arrival_time) : -1;
             int wt = (tat >= 0) ? (tat - process->burst_time) : -1;
-            
+
             const char *status = process->is_killed ? "KILLED" : (strcmp(process->state, "TERMINATED") == 0 ? "OK" : process->state);
             int io_print = process->is_killed ? process->IO_duration : process->total_io_time;
 
-            if (process->is_killed){
+            if (process->is_killed)
+            {
                 printf("%d\t%s\t%d\t%d\t%s\t-\t\t-\n", process->id, process->name, process->burst_time, io_print, status);
             }
-            else{
+            else
+            {
                 printf("%d\t%s\t%d\t%d\t%s\t%d\t\t%d\n", process->id, process->name, process->burst_time, io_print, status, tat, wt);
             }
             curr = curr->next;
@@ -310,37 +312,42 @@ void printoutput(struct hashnode *hashmap[])
 void freeAll(struct Queue *ready, struct Queue *waiting, struct Queue *terminated,
              struct KillCmd *killhead, struct hashnode *hashmap[])
 {
-    struct Queue *queues[3] = {ready, waiting, terminated};
-    for (int i = 0; i < 3; i++)
-    {
-        struct Queue *queue = queues[i];
-        if (!queue)
-            continue;
-        struct qnode *curr = queue->front;
-        while (curr)
-        {
-            struct qnode *temp = curr;
-            curr = curr->next;
-            free(temp);
-        }
-        free(queue);
-    }
-
-    struct KillCmd *killnode = killhead;
-    while (killnode)
-    {
-        struct KillCmd *temp = killnode;
-        killnode = killnode->next;
+    while (killhead) {
+        struct KillCmd *temp = killhead;
+        killhead = killhead->next;
         free(temp);
     }
 
-    for (int i = 0; i < HASH_SIZE; i++)
-    {
+    if (terminated) {
+        struct Process *process;
+        while ((process = dequeue(terminated)) != NULL) {
+            free(process); 
+        }
+        free(terminated); 
+    }
+
+    struct Queue *queues[2] = { ready, waiting };
+    for (int i = 0; i < 2; i++) {
+        struct Queue *queue = queues[i];
+        if (!queue) continue;
+
+        struct qnode *curr = queue->front;
+        while (curr) {
+            struct qnode *temp = curr;
+            curr = curr->next;
+
+            if (temp->process) {
+                free(temp->process);
+            }
+            free(temp); 
+        }
+
+        free(queue);
+    }
+
+    for (int i = 0; i < HASH_SIZE; i++) {
         struct hashnode *curr = hashmap[i];
-        while (curr)
-        {
-            if (curr->process)
-                free(curr->process);
+        while (curr) {
             struct hashnode *temp = curr;
             curr = curr->next;
             free(temp);
@@ -348,6 +355,7 @@ void freeAll(struct Queue *ready, struct Queue *waiting, struct Queue *terminate
         hashmap[i] = NULL;
     }
 }
+
 
 int main()
 {
@@ -374,7 +382,18 @@ int main()
         {
             int pid, t;
             if (sscanf(tmp, "kill %d %d", &pid, &t) == 2)
+            {
+                if (hashsearch(pid, hashmap) == NULL)
+                {
+                    printf("KILL ignored: PID %d does not exist.\n", pid);
+                    continue;
+                }
                 insertKillCmd(&killhead, pid, t);
+            }
+            else
+            {
+                printf("Invalid KILL format. Use: kill <pid> <time>\n");
+            }
         }
         else
         {
@@ -383,7 +402,9 @@ int main()
             {
                 if (hashsearch(p->id, hashmap) != NULL)
                 {
+                    printf("PID %d already exists. Process ignored.\n", p->id);
                     free(p);
+                    continue;
                 }
                 else
                 {
@@ -391,6 +412,11 @@ int main()
                     enqueue(ready, p);
                     total_processes++;
                 }
+            }
+            else
+            {
+                printf("Invalid process format. Use: <name> <pid> <burst> [<IO_start> <IO_dur>]\n");
+                continue; 
             }
         }
     }

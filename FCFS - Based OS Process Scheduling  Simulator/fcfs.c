@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define HASH_SIZE 100
 
@@ -143,9 +144,33 @@ struct Process *parseProcessLine(char *line)
     struct Process *process = malloc(sizeof(struct Process));
     char nameStr[32], ioStartStr[16], ioDurStr[16];
 
-    int scanned = sscanf(line, "%31s %d %d %15s %15s",
-                         nameStr, &process->id, &process->burst_time, ioStartStr, ioDurStr);
-    if (scanned < 3)
+    int pos = 0;
+    int scanned = sscanf(line, "%31s %d %d %15s %15s %n",
+                         nameStr, &process->id, &process->burst_time,
+                         ioStartStr, ioDurStr, &pos);
+
+    if (!(scanned == 3 || scanned == 5))
+    {
+        free(process);
+        return NULL;
+    }
+
+    for (int i = pos; line[i] != '\0'; i++)
+    {
+        if (!isspace(line[i]))
+        {
+            free(process);
+            return NULL;
+        }
+    }
+
+    if (process->id <= 0)
+    {
+        free(process);
+        return NULL;
+    }
+
+    if (process->burst_time <= 0)
     {
         free(process);
         return NULL;
@@ -160,14 +185,30 @@ struct Process *parseProcessLine(char *line)
     }
     else
     {
+
         if (strcmp(ioStartStr, "-") == 0)
             process->IO_start = -1;
         else
+        {
             process->IO_start = atoi(ioStartStr);
+            if (process->IO_start < 0)
+            {
+                free(process);
+                return NULL;
+            }
+        }
+
         if (strcmp(ioDurStr, "-") == 0)
             process->IO_duration = 0;
         else
+        {
             process->IO_duration = atoi(ioDurStr);
+            if (process->IO_duration < 0)
+            {
+                free(process);
+                return NULL;
+            }
+        }
     }
 
     process->arrival_time = 0;
@@ -218,29 +259,41 @@ void simulate(struct Queue *ready, struct Queue *waiting, struct Queue *terminat
 
         if (!isEmpty(waiting))
         {
-            struct Queue *newWaiting = createQueue();
-            while (!isEmpty(waiting))
+            struct qnode *oldFront = waiting->front;
+            struct qnode *oldRear = waiting->rear;
+
+            waiting->front = NULL;
+            waiting->rear = NULL;
+
+            struct qnode *current = oldFront;
+
+            while (current)
             {
-                struct Process *process = dequeue(waiting);
-                if (process->is_killed)
-                    continue;
-                if (process->remaining_io > 0)
+                struct qnode *next = current->next;
+                struct Process *process = current->process;
+                free(current);
+
+                if (!process->is_killed)
                 {
-                    process->remaining_io--;
-                    process->total_io_time++;
+                    if (process->remaining_io > 0)
+                    {
+                        process->remaining_io--;
+                        process->total_io_time++;
+                    }
+
+                    if (process->remaining_io <= 0)
+                    {
+                        strcpy(process->state, "READY");
+                        enqueue(ready, process);
+                    }
+                    else
+                    {
+                        enqueue(waiting, process);
+                    }
                 }
-                if (process->remaining_io <= 0)
-                {
-                    strcpy(process->state, "READY");
-                    enqueue(ready, process);
-                }
-                else
-                {
-                    enqueue(newWaiting, process);
-                }
+
+                current = next;
             }
-            free(waiting);
-            waiting = newWaiting;
         }
 
         if (running && !running->is_killed)
@@ -312,42 +365,51 @@ void printoutput(struct hashnode *hashmap[])
 void freeAll(struct Queue *ready, struct Queue *waiting, struct Queue *terminated,
              struct KillCmd *killhead, struct hashnode *hashmap[])
 {
-    while (killhead) {
+    while (killhead)
+    {
         struct KillCmd *temp = killhead;
         killhead = killhead->next;
         free(temp);
     }
 
-    if (terminated) {
+    if (terminated)
+    {
         struct Process *process;
-        while ((process = dequeue(terminated)) != NULL) {
-            free(process); 
+        while ((process = dequeue(terminated)) != NULL)
+        {
+            free(process);
         }
-        free(terminated); 
+        free(terminated);
     }
 
-    struct Queue *queues[2] = { ready, waiting };
-    for (int i = 0; i < 2; i++) {
+    struct Queue *queues[2] = {ready, waiting};
+    for (int i = 0; i < 2; i++)
+    {
         struct Queue *queue = queues[i];
-        if (!queue) continue;
+        if (!queue)
+            continue;
 
         struct qnode *curr = queue->front;
-        while (curr) {
+        while (curr)
+        {
             struct qnode *temp = curr;
             curr = curr->next;
 
-            if (temp->process) {
+            if (temp->process)
+            {
                 free(temp->process);
             }
-            free(temp); 
+            free(temp);
         }
 
         free(queue);
     }
 
-    for (int i = 0; i < HASH_SIZE; i++) {
+    for (int i = 0; i < HASH_SIZE; i++)
+    {
         struct hashnode *curr = hashmap[i];
-        while (curr) {
+        while (curr)
+        {
             struct hashnode *temp = curr;
             curr = curr->next;
             free(temp);
@@ -355,7 +417,6 @@ void freeAll(struct Queue *ready, struct Queue *waiting, struct Queue *terminate
         hashmap[i] = NULL;
     }
 }
-
 
 int main()
 {
@@ -416,9 +477,16 @@ int main()
             else
             {
                 printf("Invalid process format. Use: <name> <pid> <burst> [<IO_start> <IO_dur>]\n");
-                continue; 
+                continue;
             }
         }
+    }
+
+    if (total_processes == 0)
+    {
+        printf("\nNo processes entered. Exiting...\n");
+        freeAll(ready, waiting, terminated, killhead, hashmap);
+        return 0;
     }
 
     simulate(ready, waiting, terminated, hashmap, killhead, total_processes);
